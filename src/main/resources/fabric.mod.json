@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "sugarcanev1",
+	"version": "${version}",
+	"name": "SugarcaneV1",
+	"description": "stress kntl",
+	"authors": [
+		"Dimossdxzcv"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/sugarcanev1/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.dimossdxzcv.sugarcanev1.SugarcaneV1"
+		],
+		"client": [
+			"net.dimossdxzcv.sugarcanev1.SugarcaneV1client"
+		],
+		"fabric-datagen": [
+			"net.dimossdxzcv.sugarcanev1.SugarcaneV1DataGenerator"
+		]
+	},
+	"mixins": [
+		"sugarcanev1.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
