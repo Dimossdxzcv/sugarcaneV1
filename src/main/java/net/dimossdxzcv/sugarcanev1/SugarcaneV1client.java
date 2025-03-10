@@ -12,12 +12,13 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class SugarcaneV1client implements ClientModInitializer {
-    private static final KeyBinding startKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.start", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.mymod"));
-    private static final KeyBinding pauseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.pause", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.mymod"));
+    private static final KeyBinding startKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.sugarcaneV1.start", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.sugarcaneV1"));
+    private static final KeyBinding pauseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.sugarcaneV1.pause", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.sugarcaneV1"));
 
     private boolean isRunning = false;
     private long lastActionTime = 0;
     private long lastYawUpdateTime = 0;
+    private long lastFeedUpdate = 0;
     private int state = 0; // 0 = breaking, 1 = moving left, 2 = moving right
 
     @Override
@@ -27,6 +28,7 @@ public class SugarcaneV1client implements ClientModInitializer {
                 isRunning = true;
                 lastActionTime = System.currentTimeMillis();
                 lastYawUpdateTime = System.currentTimeMillis();
+                lastFeedUpdate = System.currentTimeMillis();
                 state = 0;
                 if (client.player != null) {
                     client.player.setPitch(0);
@@ -45,7 +47,13 @@ public class SugarcaneV1client implements ClientModInitializer {
             MinecraftClient mc = MinecraftClient.getInstance();
 
             // Always breaking blocks (even in title screen)
-            mc.options.attackKey.setPressed(true);
+            mc.execute(() -> mc.options.attackKey.setPressed(true));
+
+
+            if (client.player != null && currentTime - lastFeedUpdate >= 60000) {
+                client.player.networkHandler.sendChatCommand("feed");
+                lastFeedUpdate = currentTime;
+            }
 
             if (client.player != null) {
                 if (client.player.getPitch() != 0) {
