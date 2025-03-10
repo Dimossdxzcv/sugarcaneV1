@@ -19,7 +19,8 @@
 			"net.dimossdxzcv.sugarcanev1.SugarcaneV1"
 		],
 		"client": [
-			"net.dimossdxzcv.sugarcanev1.SugarcaneV1client"
+			"net.dimossdxzcv.sugarcanev1.SugarcaneV1client",
+			"net.dimossdxzcv.sugarcanev1.BowWarden"
 		],
 		"fabric-datagen": [
 			"net.dimossdxzcv.sugarcanev1.SugarcaneV1DataGenerator"
