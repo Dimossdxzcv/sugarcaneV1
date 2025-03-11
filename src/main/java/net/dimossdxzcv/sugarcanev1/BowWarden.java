@@ -12,15 +12,19 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class BowWarden implements ClientModInitializer {
-    private static final KeyBinding startKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.start", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.mymod"));
+    private static final KeyBinding startKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.start", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT, "category.mymod"));
     private static final KeyBinding pauseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.pause", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT, "category.mymod"));
 
-    private boolean isRunning = false;
+    private static boolean isRunning = false;
     private long lastRightClickTime = 0;
     private long lastMoveTime = 0;
     private long lastCommandTime = 0;
-    private int commandState = 0; // 0 = /hub, 1 = wait 5s, 2 = /server survival, 3 = wait 4s
-    private int state = 1; // 1 = move left, 2 = wait, 3 = move right
+    private long deathTime = -1;
+    private int commandState = 0;
+    private int state = 1;
+    private boolean wasDead = false;
+    private static String warpCommand = "team warp warden";
+
 
     @Override
     public void onInitializeClient() {
@@ -30,6 +34,8 @@ public class BowWarden implements ClientModInitializer {
                 lastRightClickTime = System.currentTimeMillis();
                 lastMoveTime = System.currentTimeMillis();
                 lastCommandTime = System.currentTimeMillis();
+                deathTime = -1;
+                wasDead = false;
                 commandState = 0;
                 state = 1;
             }
@@ -45,6 +51,24 @@ public class BowWarden implements ClientModInitializer {
             long currentTime = System.currentTimeMillis();
             MinecraftClient mc = MinecraftClient.getInstance();
 
+            // Handle auto respawn and warp command with a proper death check
+            if (mc.player != null) {
+                if (mc.player.isDead()) {
+                    if (!wasDead) {
+                        deathTime = currentTime; // Set the time of death
+                        wasDead = true;
+                    }
+                } else {
+                    wasDead = false;
+                }
+
+                if (deathTime != -1 && (currentTime - deathTime) >= 5000) {
+                    mc.player.networkHandler.sendChatCommand(warpCommand);
+                    deathTime = -1; // Reset death time
+                    wasDead = false; // Reset death flag
+                }
+            }
+
             // Always loop right-click every 6000ms (3000ms hold, 3000ms wait)
             if (currentTime - lastRightClickTime < 3000) {
                 mc.options.useKey.setPressed(true);
@@ -56,8 +80,8 @@ public class BowWarden implements ClientModInitializer {
 
             // Chat command sequence
             switch (commandState) {
-                case 0: // Send /hub
-                    if (currentTime - lastCommandTime >= 120000) { // Every 120 seconds
+                case 0:
+                    if (currentTime - lastCommandTime >= 120000) {
                         if (mc.player != null) {
                             mc.player.networkHandler.sendChatCommand("hub");
                         }
@@ -65,19 +89,19 @@ public class BowWarden implements ClientModInitializer {
                         commandState = 1;
                     }
                     break;
-                case 1: // Wait 5 seconds
+                case 1:
                     if (currentTime - lastCommandTime >= 5000) {
                         commandState = 2;
                     }
                     break;
-                case 2: // Send /server survival
+                case 2:
                     if (mc.player != null) {
                         mc.player.networkHandler.sendChatCommand("server survival");
                     }
                     lastCommandTime = currentTime;
                     commandState = 3;
                     break;
-                case 3: // Wait 4 seconds before restarting
+                case 3:
                     if (currentTime - lastCommandTime >= 4000) {
                         commandState = 0;
                         lastCommandTime = currentTime;
@@ -85,8 +109,9 @@ public class BowWarden implements ClientModInitializer {
                     break;
             }
 
+            // Movement sequence
             switch (state) {
-                case 1: // Move left for 1000ms
+                case 1:
                     mc.options.leftKey.setPressed(true);
                     if (currentTime - lastMoveTime >= 1000) {
                         mc.options.leftKey.setPressed(false);
@@ -94,18 +119,18 @@ public class BowWarden implements ClientModInitializer {
                         state = 2;
                     }
                     break;
-                case 2: // Wait 20000ms
+                case 2:
                     if (currentTime - lastMoveTime >= 20000) {
                         lastMoveTime = currentTime;
                         state = 3;
                     }
                     break;
-                case 3: // Move right for 1000ms
+                case 3:
                     mc.options.rightKey.setPressed(true);
                     if (currentTime - lastMoveTime >= 1000) {
                         mc.options.rightKey.setPressed(false);
                         lastMoveTime = currentTime;
-                        state = 1; // Restart move sequence
+                        state = 1;
                     }
                     break;
             }
@@ -116,5 +141,13 @@ public class BowWarden implements ClientModInitializer {
         client.options.useKey.setPressed(false);
         client.options.leftKey.setPressed(false);
         client.options.rightKey.setPressed(false);
+    }
+
+    public static void setWarpCommand(String newCommand) {
+        warpCommand = newCommand;
+    }
+
+    public static String getWarpCommand() {
+        return warpCommand;
     }
 }

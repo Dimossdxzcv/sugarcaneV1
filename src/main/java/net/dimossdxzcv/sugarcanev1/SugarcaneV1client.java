@@ -41,6 +41,8 @@ public class SugarcaneV1client implements ClientModInitializer {
                 return;
             }
 
+
+
             if (!isRunning) return;
 
             long currentTime = System.currentTimeMillis();
@@ -49,6 +51,7 @@ public class SugarcaneV1client implements ClientModInitializer {
             // Always breaking blocks (even in title screen)
             mc.execute(() -> mc.options.attackKey.setPressed(true));
 
+            if (!isRunning) return;
 
             if (client.player != null && currentTime - lastFeedUpdate >= 60000) {
                 client.player.networkHandler.sendChatCommand("feed");
@@ -61,9 +64,9 @@ public class SugarcaneV1client implements ClientModInitializer {
                 }
 
                 if (currentTime - lastYawUpdateTime >= 4000) { // Modify pitch only every 10 seconds
-                        client.player.setYaw(client.player.getYaw() + 0.1f); // Modify pitch by +0.1 when pressing A
-                        client.player.setPitch(client.player.getPitch() + 0.1f);
-                        client.player.setYaw(client.player.getYaw() - 0.1f);
+                    client.player.setYaw(client.player.getYaw() + 0.1f); // Modify pitch by +0.1 when pressing A
+                    client.player.setPitch(client.player.getPitch() + 0.1f);
+                    client.player.setYaw(client.player.getYaw() - 0.1f);
                     lastYawUpdateTime = currentTime;
                 }
 
