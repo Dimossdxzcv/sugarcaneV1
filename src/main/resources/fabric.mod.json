@@ -21,7 +21,8 @@
 		"client": [
 			"net.dimossdxzcv.sugarcanev1.SugarcaneV1client",
 			"net.dimossdxzcv.sugarcanev1.BowWarden",
-			"net.dimossdxzcv.sugarcanev1.AutoRespawn"
+			"net.dimossdxzcv.sugarcanev1.AutoRespawn",
+			"net.dimossdxzcv.sugarcanev1.AutoAgility"
 		],
 		"fabric-datagen": [
 			"net.dimossdxzcv.sugarcanev1.SugarcaneV1DataGenerator"

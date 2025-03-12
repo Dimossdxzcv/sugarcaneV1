@@ -9,10 +9,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
+import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
+import net.minecraft.text.Style;
 
 @Environment(EnvType.CLIENT)
 public class SugarcaneV1client implements ClientModInitializer {
-    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.mymod"));
+    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.sugarcane.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.sugarcane"));
 
     private boolean isRunning = false;
     private long lastActionTime = 0;
@@ -25,6 +28,11 @@ public class SugarcaneV1client implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (toggleKey.wasPressed()) {
                 isRunning = !isRunning;
+                if (client.player != null) {
+                    Text message = Text.literal("AutoAgility " + (isRunning ? "enabled" : "disabled"))
+                            .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
+                    client.player.sendMessage(message, false);
+                };
                 if (!isRunning) {
                     releaseKeys(client);
                     return;
