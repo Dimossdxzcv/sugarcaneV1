@@ -29,7 +29,7 @@ public class SugarcaneV1client implements ClientModInitializer {
             if (toggleKey.wasPressed()) {
                 isRunning = !isRunning;
                 if (client.player != null) {
-                    Text message = Text.literal("AutoAgility " + (isRunning ? "enabled" : "disabled"))
+                    Text message = Text.literal("Sugarcane " + (isRunning ? "enabled" : "disabled"))
                             .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
                     client.player.sendMessage(message, false);
                 };
