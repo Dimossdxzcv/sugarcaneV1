@@ -12,8 +12,7 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class SugarcaneV1client implements ClientModInitializer {
-    private static final KeyBinding startKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.sugarcaneV1.start", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.sugarcaneV1"));
-    private static final KeyBinding pauseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.sugarcaneV1.pause", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.sugarcaneV1"));
+    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.mymod"));
 
     private boolean isRunning = false;
     private long lastActionTime = 0;
@@ -24,24 +23,21 @@ public class SugarcaneV1client implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (startKey.wasPressed()) {
-                isRunning = true;
-                lastActionTime = System.currentTimeMillis();
-                lastYawUpdateTime = System.currentTimeMillis();
-                lastFeedUpdate = System.currentTimeMillis();
-                state = 0;
-                if (client.player != null) {
-                    client.player.setPitch(0);
+            if (toggleKey.wasPressed()) {
+                isRunning = !isRunning;
+                if (!isRunning) {
+                    releaseKeys(client);
+                    return;
+                } else {
+                    lastActionTime = System.currentTimeMillis();
+                    lastYawUpdateTime = System.currentTimeMillis();
+                    lastFeedUpdate = System.currentTimeMillis();
+                    state = 0;
+                    if (client.player != null) {
+                        client.player.setPitch(0);
+                    }
                 }
             }
-
-            if (pauseKey.wasPressed()) {
-                isRunning = false;
-                releaseKeys(client);
-                return;
-            }
-
-
 
             if (!isRunning) return;
 
@@ -50,8 +46,6 @@ public class SugarcaneV1client implements ClientModInitializer {
 
             // Always breaking blocks (even in title screen)
             mc.execute(() -> mc.options.attackKey.setPressed(true));
-
-            if (!isRunning) return;
 
             if (client.player != null && currentTime - lastFeedUpdate >= 60000) {
                 client.player.networkHandler.sendChatCommand("feed");
@@ -63,8 +57,8 @@ public class SugarcaneV1client implements ClientModInitializer {
                     client.player.setPitch(0);
                 }
 
-                if (currentTime - lastYawUpdateTime >= 4000) { // Modify pitch only every 10 seconds
-                    client.player.setYaw(client.player.getYaw() + 0.1f); // Modify pitch by +0.1 when pressing A
+                if (currentTime - lastYawUpdateTime >= 4000) { // Modify pitch every 4 seconds
+                    client.player.setYaw(client.player.getYaw() + 0.1f);
                     client.player.setPitch(client.player.getPitch() + 0.1f);
                     client.player.setYaw(client.player.getYaw() - 0.1f);
                     lastYawUpdateTime = currentTime;

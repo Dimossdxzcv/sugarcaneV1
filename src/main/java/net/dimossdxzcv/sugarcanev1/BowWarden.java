@@ -12,8 +12,7 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class BowWarden implements ClientModInitializer {
-    private static final KeyBinding startKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.start", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT, "category.mymod"));
-    private static final KeyBinding pauseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.pause", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT, "category.mymod"));
+    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.mymod.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.mymod"));
 
     private static boolean isRunning = false;
     private long lastRightClickTime = 0;
@@ -23,27 +22,24 @@ public class BowWarden implements ClientModInitializer {
     private int commandState = 0;
     private int state = 1;
     private boolean wasDead = false;
-    private static String warpCommand = "team warp warden";
-
+    private static String warpCommand = "home warden";
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (startKey.wasPressed()) {
-                isRunning = true;
-                lastRightClickTime = System.currentTimeMillis();
-                lastMoveTime = System.currentTimeMillis();
-                lastCommandTime = System.currentTimeMillis();
-                deathTime = -1;
-                wasDead = false;
-                commandState = 0;
-                state = 1;
-            }
-
-            if (pauseKey.wasPressed()) {
-                isRunning = false;
-                releaseKeys(client);
-                return;
+            if (toggleKey.wasPressed()) {
+                isRunning = !isRunning;
+                if (!isRunning) {
+                    releaseKeys(client);
+                } else {
+                    lastRightClickTime = System.currentTimeMillis();
+                    lastMoveTime = System.currentTimeMillis();
+                    lastCommandTime = System.currentTimeMillis();
+                    deathTime = -1;
+                    wasDead = false;
+                    commandState = 0;
+                    state = 1;
+                }
             }
 
             if (!isRunning) return;
