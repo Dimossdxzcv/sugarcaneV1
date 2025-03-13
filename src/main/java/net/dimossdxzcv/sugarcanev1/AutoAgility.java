@@ -9,7 +9,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.text.Style;
 import org.lwjgl.glfw.GLFW;
 
@@ -23,6 +22,8 @@ public class AutoAgility implements ClientModInitializer {
     private long lastHomeTime = 0;
     private long deathTime = -1;
     private boolean wasDead = false;
+    private long lastMoveTime = 0;
+    private boolean isMovingBackwards = false;
 
     @Override
     public void onInitializeClient() {
@@ -33,14 +34,15 @@ public class AutoAgility implements ClientModInitializer {
                     Text message = Text.literal("AutoAgility " + (isRunning ? "enabled" : "disabled"))
                             .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
                     client.player.sendMessage(message, false);
-                };
-
+                }
                 if (isRunning) {
                     lastCommandTime = System.currentTimeMillis();
                     lastFeedTime = System.currentTimeMillis();
                     lastHomeTime = System.currentTimeMillis();
+                    lastMoveTime = System.currentTimeMillis();
                     deathTime = -1;
                     wasDead = false;
+                    isMovingBackwards = false;
                 }
             }
 
@@ -91,6 +93,20 @@ public class AutoAgility implements ClientModInitializer {
                     mc.player.networkHandler.sendChatCommand("home agility");
                 }
                 lastHomeTime = currentTime;
+            }
+
+            // Move backwards every 30 seconds for 3500ms
+            if (currentTime - lastMoveTime >= 30000) {
+                isMovingBackwards = true;
+                lastMoveTime = currentTime;
+            }
+
+            if (isMovingBackwards) {
+                mc.options.backKey.setPressed(true);
+                if (currentTime - lastMoveTime >= 3500) {
+                    mc.options.backKey.setPressed(false);
+                    isMovingBackwards = false;
+                }
             }
         });
     }
