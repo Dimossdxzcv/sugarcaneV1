@@ -14,36 +14,22 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class AutoAgility implements ClientModInitializer {
-    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.autoagility.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.autoagility"));
+    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding("key.autoagility.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.autoagility")
+    );
 
-    private boolean isRunning = false;
-    private long lastCommandTime = 0;
-    private long lastFeedTime = 0;
-    private long lastHomeTime = 0;
-    private long deathTime = -1;
-    private boolean wasDead = false;
-    private long lastMoveTime = 0;
-    private boolean isMovingBackwards = false;
+    private static boolean isRunning = false;
+    private static long lastCommandTime = 0;
+    private static long lastFeedTime = 0;
+    private static long lastHomeTime = 0;
+    private static long deathTime = -1;
+    private static boolean wasDead = false;
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (toggleKey.wasPressed()) {
-                isRunning = !isRunning;
-                if (client.player != null) {
-                    Text message = Text.literal("AutoAgility " + (isRunning ? "enabled" : "disabled"))
-                            .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
-                    client.player.sendMessage(message, false);
-                }
-                if (isRunning) {
-                    lastCommandTime = System.currentTimeMillis();
-                    lastFeedTime = System.currentTimeMillis();
-                    lastHomeTime = System.currentTimeMillis();
-                    lastMoveTime = System.currentTimeMillis();
-                    deathTime = -1;
-                    wasDead = false;
-                    isMovingBackwards = false;
-                }
+                toggle();
             }
 
             if (!isRunning) return;
@@ -94,20 +80,32 @@ public class AutoAgility implements ClientModInitializer {
                 }
                 lastHomeTime = currentTime;
             }
-
-            // Move backwards every 30 seconds for 3500ms
-            if (currentTime - lastMoveTime >= 30000) {
-                isMovingBackwards = true;
-                lastMoveTime = currentTime;
-            }
-
-            if (isMovingBackwards) {
-                mc.options.backKey.setPressed(true);
-                if (currentTime - lastMoveTime >= 3500) {
-                    mc.options.backKey.setPressed(false);
-                    isMovingBackwards = false;
-                }
-            }
         });
+    }
+
+    public static void toggle() {
+        isRunning = !isRunning;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            Text message = Text.literal("AutoAgility " + (isRunning ? "enabled" : "disabled"))
+                    .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
+            client.player.sendMessage(message, false);
+        }
+
+        if (isRunning) {
+            lastCommandTime = System.currentTimeMillis();
+            lastFeedTime = System.currentTimeMillis();
+            lastHomeTime = System.currentTimeMillis();
+            deathTime = -1;
+            wasDead = false;
+        }
+    }
+
+    public static boolean isRunning() {
+        return isRunning;
+    }
+
+    public static KeyBinding getToggleKey() {
+        return toggleKey;
     }
 }

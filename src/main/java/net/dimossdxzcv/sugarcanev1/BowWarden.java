@@ -10,44 +10,29 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.text.Style;
 
 @Environment(EnvType.CLIENT)
 public class BowWarden implements ClientModInitializer {
-    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.BowWarden.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.BowWarden"));
+    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding("key.BowWarden.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.BowWarden")
+    );
 
     private static boolean isRunning = false;
-    private long lastRightClickTime = 0;
-    private long lastMoveTime = 0;
-    private long lastCommandTime = 0;
-    private long deathTime = -1;
-    private int commandState = 0;
-    private int state = 1;
-    private boolean wasDead = false;
+    private static long lastRightClickTime = 0;
+    private static long lastMoveTime = 0;
+    private static long lastCommandTime = 0;
+    private static long deathTime = -1;
+    private static int commandState = 0;
+    private static int state = 1;
+    private static boolean wasDead = false;
     private static String warpCommand = "home warden";
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (toggleKey.wasPressed()) {
-                isRunning = !isRunning;
-                if (client.player != null) {
-                    Text message = Text.literal("BowWarden " + (isRunning ? "enabled" : "disabled"))
-                            .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
-                    client.player.sendMessage(message, false);
-                };
-                if (!isRunning) {
-                    releaseKeys(client);
-                } else {
-                    lastRightClickTime = System.currentTimeMillis();
-                    lastMoveTime = System.currentTimeMillis();
-                    lastCommandTime = System.currentTimeMillis();
-                    deathTime = -1;
-                    wasDead = false;
-                    commandState = 0;
-                    state = 1;
-                }
+                toggle();
             }
 
             if (!isRunning) return;
@@ -141,7 +126,29 @@ public class BowWarden implements ClientModInitializer {
         });
     }
 
-    private void releaseKeys(MinecraftClient client) {
+    public static void toggle() {
+        isRunning = !isRunning;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            Text message = Text.literal("BowWarden " + (isRunning ? "enabled" : "disabled"))
+                    .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
+            client.player.sendMessage(message, false);
+        }
+
+        if (!isRunning) {
+            releaseKeys(client);
+        } else {
+            lastRightClickTime = System.currentTimeMillis();
+            lastMoveTime = System.currentTimeMillis();
+            lastCommandTime = System.currentTimeMillis();
+            deathTime = -1;
+            wasDead = false;
+            commandState = 0;
+            state = 1;
+        }
+    }
+
+    private static void releaseKeys(MinecraftClient client) {
         client.options.useKey.setPressed(false);
         client.options.leftKey.setPressed(false);
         client.options.rightKey.setPressed(false);
@@ -153,5 +160,13 @@ public class BowWarden implements ClientModInitializer {
 
     public static String getWarpCommand() {
         return warpCommand;
+    }
+
+    public static boolean isRunning() {
+        return isRunning;
+    }
+
+    public static KeyBinding getToggleKey() {
+        return toggleKey;
     }
 }

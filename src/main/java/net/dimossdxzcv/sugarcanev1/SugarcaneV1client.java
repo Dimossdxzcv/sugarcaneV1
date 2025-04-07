@@ -10,41 +10,25 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.text.Style;
 
 @Environment(EnvType.CLIENT)
 public class SugarcaneV1client implements ClientModInitializer {
-    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.sugarcane.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.sugarcane"));
+    private static final KeyBinding toggleKey = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding("key.sugarcane.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.sugarcane")
+    );
 
-    private boolean isRunning = false;
-    private long lastActionTime = 0;
-    private long lastYawUpdateTime = 0;
-    private long lastFeedUpdate = 0;
-    private int state = 0; // 0 = breaking, 1 = moving left, 2 = moving right
+    private static boolean isRunning = false;
+    private static long lastActionTime = 0;
+    private static long lastYawUpdateTime = 0;
+    private static long lastFeedUpdate = 0;
+    private static int state = 0; // 0 = breaking, 1 = moving left, 2 = moving right
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (toggleKey.wasPressed()) {
-                isRunning = !isRunning;
-                if (client.player != null) {
-                    Text message = Text.literal("Sugarcane " + (isRunning ? "enabled" : "disabled"))
-                            .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
-                    client.player.sendMessage(message, false);
-                };
-                if (!isRunning) {
-                    releaseKeys(client);
-                    return;
-                } else {
-                    lastActionTime = System.currentTimeMillis();
-                    lastYawUpdateTime = System.currentTimeMillis();
-                    lastFeedUpdate = System.currentTimeMillis();
-                    state = 0;
-                    if (client.player != null) {
-                        client.player.setPitch(0);
-                    }
-                }
+                toggle();
             }
 
             if (!isRunning) return;
@@ -96,9 +80,41 @@ public class SugarcaneV1client implements ClientModInitializer {
         });
     }
 
-    private void releaseKeys(MinecraftClient client) {
+    public static void toggle() {
+        isRunning = !isRunning;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            Text message = Text.literal("Sugarcane " + (isRunning ? "enabled" : "disabled"))
+                    .setStyle(Style.EMPTY.withColor(isRunning ? 0x00FF00 : 0xFF0000));
+            client.player.sendMessage(message, false);
+        }
+
+        if (!isRunning) {
+            releaseKeys(client);
+        } else {
+            MinecraftClient.getInstance().execute(() -> {
+                lastActionTime = System.currentTimeMillis();
+                lastYawUpdateTime = System.currentTimeMillis();
+                lastFeedUpdate = System.currentTimeMillis();
+                state = 0;
+                if (client.player != null) {
+                    client.player.setPitch(0);
+                }
+            });
+        }
+    }
+
+    private static void releaseKeys(MinecraftClient client) {
         client.options.attackKey.setPressed(false);
         client.options.leftKey.setPressed(false);
         client.options.rightKey.setPressed(false);
+    }
+
+    public static boolean isRunning() {
+        return isRunning;
+    }
+
+    public static KeyBinding getToggleKey() {
+        return toggleKey;
     }
 }
