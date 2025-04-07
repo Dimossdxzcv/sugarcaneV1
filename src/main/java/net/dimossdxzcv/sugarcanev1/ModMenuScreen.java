@@ -28,6 +28,7 @@ public class ModMenuScreen extends Screen {
         this.modules.add(new ModModule("Sugarcane Farm", SugarcaneV1client.isRunning(), SugarcaneV1client.getToggleKey()));
         this.modules.add(new ModModule("Bow Warden", BowWarden.isRunning(), BowWarden.getToggleKey()));
         this.modules.add(new ModModule("Auto Agility", AutoAgility.isRunning(), AutoAgility.getToggleKey()));
+        this.modules.add(new ModModule("Auto Fishing", AutoFishing.isRunning(), AutoFishing.getToggleKey()));
     }
 
     @Override
@@ -54,6 +55,8 @@ public class ModMenuScreen extends Screen {
                             BowWarden.toggle();
                         } else if (module.getName().equals("Auto Agility")) {
                             AutoAgility.toggle();
+                        } else if (module.getName().equals("Auto Fishing")) {
+                            AutoFishing.toggle();
                         }
                     }
             ).dimensions(centerX - BUTTON_WIDTH - 5, yPos, BUTTON_WIDTH, BUTTON_HEIGHT).build());

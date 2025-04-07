@@ -23,6 +23,7 @@
 			"net.dimossdxzcv.sugarcanev1.BowWarden",
 			"net.dimossdxzcv.sugarcanev1.AutoRespawn",
 			"net.dimossdxzcv.sugarcanev1.AutoAgility",
+			"net.dimossdxzcv.sugarcanev1.AutoFishing",
 			"net.dimossdxzcv.sugarcanev1.GuiManager"
 		],
 		"fabric-datagen": [
