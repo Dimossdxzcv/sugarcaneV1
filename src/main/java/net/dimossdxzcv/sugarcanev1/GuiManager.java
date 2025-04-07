@@ -19,9 +19,16 @@ public class GuiManager implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (menuKey.wasPressed()) {
-                MinecraftClient.getInstance().setScreen(new ModMenuScreen());
+            // Check if the key is pressed and the game is not paused
+            if (menuKey.wasPressed() && client.currentScreen == null) {
+                client.execute(() -> {
+                    MinecraftClient.getInstance().setScreen(new ModMenuScreen());
+                });
             }
         });
+    }
+
+    public static KeyBinding getMenuKey() {
+        return menuKey;
     }
 }

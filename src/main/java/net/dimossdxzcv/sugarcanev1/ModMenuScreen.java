@@ -29,6 +29,7 @@ public class ModMenuScreen extends Screen {
         this.modules.add(new ModModule("Bow Warden", BowWarden.isRunning(), BowWarden.getToggleKey()));
         this.modules.add(new ModModule("Auto Agility", AutoAgility.isRunning(), AutoAgility.getToggleKey()));
         this.modules.add(new ModModule("Auto Fishing", AutoFishing.isRunning(), AutoFishing.getToggleKey()));
+        this.modules.add(new ModModule("Menu Key", false, GuiManager.getMenuKey()));
     }
 
     @Override
@@ -41,29 +42,35 @@ public class ModMenuScreen extends Screen {
             ModModule module = modules.get(i);
             int yPos = startY + i * (BUTTON_HEIGHT + PADDING);
 
-            // Status toggle button
-            this.addDrawableChild(ButtonWidget.builder(
-                    Text.literal(module.getName() + ": " + (module.isEnabled() ? "ON" : "OFF")),
-                    button -> {
-                        module.toggleEnabled();
-                        button.setMessage(Text.literal(module.getName() + ": " + (module.isEnabled() ? "ON" : "OFF")));
+            // Status toggle button - don't create for Menu Key module
+            if (!module.getName().equals("Menu Key")) {
+                this.addDrawableChild(ButtonWidget.builder(
+                        Text.literal(module.getName() + ": " + (module.isEnabled() ? "ON" : "OFF")),
+                        button -> {
+                            module.toggleEnabled();
+                            button.setMessage(Text.literal(module.getName() + ": " + (module.isEnabled() ? "ON" : "OFF")));
 
-                        // Call actual toggle methods in respective classes
-                        if (module.getName().equals("Sugarcane Farm")) {
-                            SugarcaneV1client.toggle();
-                        } else if (module.getName().equals("Bow Warden")) {
-                            BowWarden.toggle();
-                        } else if (module.getName().equals("Auto Agility")) {
-                            AutoAgility.toggle();
-                        } else if (module.getName().equals("Auto Fishing")) {
-                            AutoFishing.toggle();
+                            // Call actual toggle methods in respective classes
+                            switch (module.getName()) {
+                                case "Sugarcane Farm" -> SugarcaneV1client.toggle();
+                                case "Bow Warden" -> BowWarden.toggle();
+                                case "Auto Agility" -> AutoAgility.toggle();
+                                case "Auto Fishing" -> AutoFishing.toggle();
+                            }
                         }
-                    }
-            ).dimensions(centerX - BUTTON_WIDTH - 5, yPos, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+                ).dimensions(centerX - BUTTON_WIDTH - 5, yPos, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+            } else {
+                // For Menu Key, add a label instead of toggle button
+                this.addDrawableChild(ButtonWidget.builder(
+                        Text.literal(module.getName()),
+                        button -> {}
+                ).dimensions(centerX - BUTTON_WIDTH - 5, yPos, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+            }
 
             // Keybind button
+            String keyName = module.getKeyBinding().getBoundKeyLocalizedText().getString();
             this.addDrawableChild(ButtonWidget.builder(
-                    Text.literal("Keybind: " + InputUtil.Type.KEYSYM.createFromCode(module.getKeyBinding().getDefaultKey().getCode()).getLocalizedText().getString()),
+                    Text.literal("Keybind: " + keyName),
                     button -> {
                         selectedModule = module;
                         changingKeybind = true;
@@ -119,9 +126,9 @@ public class ModMenuScreen extends Screen {
 
     // Helper class to store module info
     private static class ModModule {
-        private String name;
+        private final String name;
         private boolean enabled;
-        private KeyBinding keyBinding;
+        private final KeyBinding keyBinding;
 
         public ModModule(String name, boolean enabled, KeyBinding keyBinding) {
             this.name = name;
